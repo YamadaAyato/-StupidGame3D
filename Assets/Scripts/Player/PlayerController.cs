@@ -33,6 +33,22 @@ public class PlayerController : MonoBehaviour
         _rb = GetComponent<Rigidbody>();
     }
 
+    /// <summary>
+    /// スクリプトが有効になった時、入力の受付開始
+    /// </summary>
+    private void OnEnable()
+    {
+        _inputActions.Enable();
+    }
+
+    /// <summary>
+    /// スクリプトが無効になった時に、入力の受け付けて停止
+    /// </summary>
+    private void OnDisable()
+    {
+        _inputActions.Disable();
+    }
+
     private void FixedUpdate()
     {
         //自動で前進(z方向)
