@@ -95,7 +95,7 @@ public partial class @SkateBoardAction: IInputActionCollection2, IDisposable
                     ""name"": ""MoveX"",
                     ""type"": ""Value"",
                     ""id"": ""488b0df2-0c9a-4106-85d8-d8ec3ab23519"",
-                    ""expectedControlType"": ""Vector2"",
+                    ""expectedControlType"": ""Vector3"",
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": true
@@ -176,7 +176,7 @@ public partial class @SkateBoardAction: IInputActionCollection2, IDisposable
                 {
                     ""name"": """",
                     ""id"": ""03458af2-3cbd-4212-b95d-4d24f72ed895"",
-                    ""path"": ""<Keyboard>/s"",
+                    ""path"": ""<Keyboard>/space"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
