@@ -58,7 +58,14 @@ public class PlayerController : MonoBehaviour
         velocity.z = moveSpeed;
 
         //A,Dキーで水平移動(x方向）
-        velocity.x = _slideInput.x * _slideforced;
+        if(IsGrounded())
+        { 
+            velocity.x = _slideInput.x * _slideforced;
+        }
+        else
+        {
+            velocity.x = 0f;
+        }
 
         //ジャンプと接地判定のフラグが立っているとき
         if (_jumpChecked && IsGrounded())
