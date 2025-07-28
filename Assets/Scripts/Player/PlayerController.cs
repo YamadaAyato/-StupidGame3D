@@ -1,15 +1,26 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using System.Collections;
 
 [RequireComponent(typeof(Rigidbody))]
 public class PlayerController : MonoBehaviour
 {
+    public enum PlayerState { Normal, Dashing }
+    private PlayerState _state = PlayerState.Normal;
+    public PlayerState CurrentState => _state; // 外部からは参照可
+
+    [Header("移動設定")]
     [SerializeField, Header("前進力")] private float _moveForced = 5f;
     [SerializeField, Header("水平移動の力")] private float _slideforced = 5f;
     [SerializeField, Header("スロー倍率")] private float _slowDiameter = 0.5f;
+
+    [Header("ジャンプ設定")]
     [SerializeField, Header("ジャンプ力")] private float _jumpForced = 5f;
     [SerializeField, Header("接地判定の長さ")] private float _groundCheckDistance = 2f;
     [SerializeField, Header("判断するレイヤー")] private LayerMask _groundLayer;
+
+    [Header("Dash設定")]
+    [SerializeField, Header("ダッシュ力")] private float _dashForced = 5f;
 
     private SkateBoardAction _inputActions;
     private Rigidbody _rb;
@@ -17,70 +28,96 @@ public class PlayerController : MonoBehaviour
     private Vector2 _slideInput;
     private bool _isSlowing;
     private bool _jumpChecked;
+    private bool _dashRequested;
+
 
     private void Awake()
     {
+        //inputSystemの適用
         _inputActions = new SkateBoardAction();
+        _rb = GetComponent<Rigidbody>();
 
+        //水平移動
         _inputActions.PlayerControls.MoveX.performed += ctx => _slideInput = ctx.ReadValue<Vector2>();
         _inputActions.PlayerControls.MoveX.canceled += ctx => _slideInput = Vector2.zero;
 
+        //スピード減速
         _inputActions.PlayerControls.SlowDown.performed += ctx => _isSlowing = true;
         _inputActions.PlayerControls.SlowDown.canceled += ctx => _isSlowing = false;
 
+        //ジャンプ
         _inputActions.PlayerControls.Jump.performed += ctx => _jumpChecked = true;
 
-        _rb = GetComponent<Rigidbody>();
+        //ダッシュ
+        _inputActions.PlayerControls.Dash.performed += ctx => _dashRequested = true;
     }
 
-    /// <summary>
-    /// スクリプトが有効になった時、入力の受付開始
-    /// </summary>
-    private void OnEnable()
-    {
-        _inputActions.Enable();
-    }
-
-    /// <summary>
-    /// スクリプトが無効になった時に、入力の受け付けて停止
-    /// </summary>
-    private void OnDisable()
-    {
-        _inputActions.Disable();
-    }
+    private void OnEnable() => _inputActions.Enable();
+    private void OnDisable() => _inputActions.Disable();
 
     private void FixedUpdate()
     {
-        //自動で前進(z方向)
+        //Vector3へ変換
         Vector3 velocity = _rb.linearVelocity;
+
+        ForwardMovement(ref velocity);
+        SlideMovement(ref velocity);
+        Jump(ref velocity);
+        Dash(ref velocity);
+
+        //最終的な反映して移動
+        _rb.linearVelocity = velocity;
+    }
+
+    /// <summary>
+    ///         自動で前進(z方向)
+    /// </summary>
+    private void ForwardMovement(ref Vector3 velocity)
+    {
         //フラグで管理、trueなら倍率を掛けて、falseなら通常移動
         float moveSpeed = _isSlowing ? _moveForced * _slowDiameter : _moveForced;
         velocity.z = moveSpeed;
+    }
 
-        //A,Dキーで水平移動(x方向）
-        if(IsGrounded())
-        { 
+    /// <summary>
+    ///         A,Dキーで水平移動(x方向）
+    /// </summary>
+    /// <param name="velocity"></param>
+    private void SlideMovement(ref Vector3 velocity)
+    {
+        //空中にいるとき移動なし
+        if (IsGrounded())
+        {
             velocity.x = _slideInput.x * _slideforced;
         }
         else
         {
             velocity.x = 0f;
         }
+    }
 
+    /// <summary>
+    ///         SpaceでジャンプY方向
+    /// </summary>
+    /// <param name="velocity"></param>
+    private void Jump(ref Vector3 velocity)
+    {
         //ジャンプと接地判定のフラグが立っているとき
         if (_jumpChecked && IsGrounded())
         {
             velocity.y = _jumpForced;
             _jumpChecked = false;
         }
+    }
 
-        //移動！
-        _rb.linearVelocity = velocity;
+    private void Dash(ref Vector3 velocity)
+    {
+
     }
 
     /// <summary>
-    /// 接地判定をRaycastを使ってチェック
-    /// 触れているならtrueで返す
+    ///         接地判定をRaycastを使ってチェック
+    ///         触れているならtrueで返す
     /// </summary>
     /// <returns></returns>
     private bool IsGrounded()
@@ -90,18 +127,13 @@ public class PlayerController : MonoBehaviour
     }
 
     /// <summary>
-    /// デバッグ用Gizmos
+    ///         デバッグ用Gizmos
     /// </summary>
     private void OnDrawGizmos()
     {
-        // レイの始点
-        Vector3 origin = transform.position;
-        // レイの方向と長さ
-        Vector3 direction = Vector3.down * _groundCheckDistance;
-
         Gizmos.color = Color.red;
         // レイを描画
-        Gizmos.DrawLine(origin, origin + direction);
+        Gizmos.DrawLine(transform.position, Vector3.down * _groundCheckDistance);
     }
 
 }
