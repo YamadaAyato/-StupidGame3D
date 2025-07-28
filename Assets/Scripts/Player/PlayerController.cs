@@ -121,7 +121,10 @@ public class PlayerController : MonoBehaviour
         if(_dashRequested && IsGrounded() && _state != PlayerState.Dashing)
         {
             _state = PlayerState.Dashing;
-            velocity += transform.forward * _dashForced;
+            
+            _rb.AddForce(transform.forward * _dashForced, ForceMode.VelocityChange);
+
+            StartCoroutine(DashRoutine());
         }
         else if(_state == PlayerState.Dashing) 
         {
@@ -131,6 +134,13 @@ public class PlayerController : MonoBehaviour
         }
 
         _dashRequested = false;
+    }
+
+    private IEnumerator DashRoutine()
+    {
+        yield return new WaitForSeconds(5);
+
+        _state = PlayerState.Normal;
     }
 
     /// <summary>

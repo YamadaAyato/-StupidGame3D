@@ -938,7 +938,7 @@ MonoBehaviour:
   _groundLayer:
     serializedVersion: 2
     m_Bits: 1
-  _dashForced: 5
+  _dashForced: 100
   _dasgAcceretion: 20
 --- !u!54 &1102366644
 Rigidbody:
