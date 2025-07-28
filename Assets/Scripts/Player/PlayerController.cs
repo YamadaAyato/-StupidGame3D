@@ -21,6 +21,7 @@ public class PlayerController : MonoBehaviour
 
     [Header("Dash設定")]
     [SerializeField, Header("ダッシュ力")] private float _dashForced = 5f;
+    [SerializeField, Header("加速力")] private float _dasgAcceretion = 20f;
 
     private SkateBoardAction _inputActions;
     private Rigidbody _rb;
@@ -72,6 +73,7 @@ public class PlayerController : MonoBehaviour
     /// <summary>
     ///         自動で前進(z方向)
     /// </summary>
+    /// /// <param name="velocity"></param>
     private void ForwardMovement(ref Vector3 velocity)
     {
         //フラグで管理、trueなら倍率を掛けて、falseなら通常移動
@@ -110,9 +112,25 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    /// <summary>
+    ///         LeftShiftで加速(向いている方向)
+    /// </summary>
+    /// <param name="velocity"></param>
     private void Dash(ref Vector3 velocity)
     {
+        if(_dashRequested && IsGrounded() && _state != PlayerState.Dashing)
+        {
+            _state = PlayerState.Dashing;
+            velocity += transform.forward * _dashForced;
+        }
+        else if(_state == PlayerState.Dashing) 
+        {
+            velocity += transform.forward * (_dasgAcceretion * Time.fixedDeltaTime);
 
+            // 今後タイマーやコルーチンなどで通常状態に戻すロジックを追加する
+        }
+
+        _dashRequested = false;
     }
 
     /// <summary>
