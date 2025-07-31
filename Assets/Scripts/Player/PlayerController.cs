@@ -51,6 +51,7 @@ public class PlayerController : MonoBehaviour
 
         //ダッシュ
         _inputActions.PlayerControls.Dash.performed += ctx => _dashRequested = true;
+        _inputActions.PlayerControls.Dash.canceled += ctx => _dashRequested = false;
     }
 
     private void OnEnable() => _inputActions.Enable();
@@ -118,22 +119,15 @@ public class PlayerController : MonoBehaviour
     /// <param name="velocity"></param>
     private void Dash(ref Vector3 velocity)
     {
-        if(_dashRequested && IsGrounded() && _state != PlayerState.Dashing)
+        if(_dashRequested &&  _state != PlayerState.Dashing)
         {
             _state = PlayerState.Dashing;
-            
-            _rb.AddForce(transform.forward * _dashForced, ForceMode.VelocityChange);
-
             StartCoroutine(DashRoutine());
         }
         else if(_state == PlayerState.Dashing) 
         {
             velocity += transform.forward * (_dasgAcceretion * Time.fixedDeltaTime);
-
-            // 今後タイマーやコルーチンなどで通常状態に戻すロジックを追加する
-        }
-
-        _dashRequested = false;
+        }  
     }
 
     private IEnumerator DashRoutine()
