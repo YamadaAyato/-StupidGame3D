@@ -5,23 +5,31 @@ using System.Collections;
 [RequireComponent(typeof(Rigidbody))]
 public class PlayerController : MonoBehaviour
 {
-    public enum PlayerState { Normal, Dashing }
+    public enum PlayerState
+    {
+        Normal,
+        Dashing
+    }
+
     private PlayerState _state = PlayerState.Normal;
     public PlayerState CurrentState => _state; // 外部からは参照可
 
-    [Header("移動設定")]
-    [SerializeField, Header("前進力")] private float _moveForced = 5f;
+    [Header("移動設定")] [SerializeField, Header("前進力")]
+    private float _moveForced = 5f;
+
     [SerializeField, Header("水平移動の力")] private float _slideforced = 5f;
     [SerializeField, Header("スロー倍率")] private float _slowDiameter = 0.5f;
 
-    [Header("ジャンプ設定")]
-    [SerializeField, Header("ジャンプ力")] private float _jumpForced = 5f;
+    [Header("ジャンプ設定")] [SerializeField, Header("ジャンプ力")]
+    private float _jumpForced = 5f;
+
     [SerializeField, Header("接地判定の長さ")] private float _groundCheckDistance = 2f;
     [SerializeField, Header("判断するレイヤー")] private LayerMask _groundLayer;
 
     [Header("Dash設定")]
-    [SerializeField, Header("ダッシュ力")] private float _dashForced = 5f;
     [SerializeField, Header("加速力")] private float _dasgAcceretion = 20f;
+    [SerializeField, Header(("ダッシュ継続時間"))]　private float _dashDuration = 2f;
+    [SerializeField, Header(("ダッシュ減速率"))]　private float _dashDeceleration = 10f;
 
     private SkateBoardAction _inputActions;
     private Rigidbody _rb;
@@ -30,6 +38,9 @@ public class PlayerController : MonoBehaviour
     private bool _isSlowing;
     private bool _jumpChecked;
     private bool _dashRequested;
+    
+    // z方向の現在速度を他スクリプトが参照できるように公開
+    public float CurrentZSpeed => _rb != null ? _rb.linearVelocity.z : 0f;
 
 
     private void Awake()
@@ -66,6 +77,14 @@ public class PlayerController : MonoBehaviour
         SlideMovement(ref velocity);
         Jump(ref velocity);
         Dash(ref velocity);
+        
+        // ★ 減速処理を追加
+        if (_state != PlayerState.Dashing)
+        {
+            // Dash後のZ方向の余分なスピードを徐々に通常速度へ戻す
+            float targetZ = _isSlowing ? _moveForced * _slowDiameter : _moveForced;
+            velocity.z = Mathf.MoveTowards(velocity.z, targetZ, _dashDeceleration * Time.fixedDeltaTime);
+        }
 
         //最終的な反映して移動
         _rb.linearVelocity = velocity;
@@ -88,15 +107,7 @@ public class PlayerController : MonoBehaviour
     /// <param name="velocity"></param>
     private void SlideMovement(ref Vector3 velocity)
     {
-        //空中にいるとき移動なし
-        if (IsGrounded())
-        {
-            velocity.x = _slideInput.x * _slideforced;
-        }
-        else
-        {
-            velocity.x = 0f;
-        }
+        velocity.x = _slideInput.x * _slideforced;
     }
 
     /// <summary>
@@ -119,20 +130,24 @@ public class PlayerController : MonoBehaviour
     /// <param name="velocity"></param>
     private void Dash(ref Vector3 velocity)
     {
-        if(_dashRequested &&  _state != PlayerState.Dashing)
+        if (_dashRequested && _state != PlayerState.Dashing)
         {
             _state = PlayerState.Dashing;
             StartCoroutine(DashRoutine());
         }
-        else if(_state == PlayerState.Dashing) 
+        else if (_state == PlayerState.Dashing)
         {
             velocity += transform.forward * (_dasgAcceretion * Time.fixedDeltaTime);
-        }  
+        }
     }
 
+    /// <summary>
+    ///         Stateを戻すためのコルーチン
+    /// </summary>
+    /// <returns></returns>
     private IEnumerator DashRoutine()
     {
-        yield return new WaitForSeconds(5);
+        yield return new WaitForSeconds(_dashDuration);
 
         _state = PlayerState.Normal;
     }
@@ -157,5 +172,4 @@ public class PlayerController : MonoBehaviour
         // レイを描画
         Gizmos.DrawLine(transform.position, Vector3.down * _groundCheckDistance);
     }
-
 }
