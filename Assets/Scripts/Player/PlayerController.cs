@@ -26,19 +26,19 @@ public class PlayerController : MonoBehaviour
     [SerializeField, Header("接地判定の長さ")] private float _groundCheckDistance = 2f;
     [SerializeField, Header("判断するレイヤー")] private LayerMask _groundLayer;
 
-    [Header("Dash設定")]
-    [SerializeField, Header("加速力")] private float _dasgAcceretion = 20f;
+    [Header("Dash設定")] [SerializeField, Header("加速力")]
+    private float _dashAcceretion = 20f;
+
     [SerializeField, Header(("ダッシュ継続時間"))]　private float _dashDuration = 2f;
     [SerializeField, Header(("ダッシュ減速率"))]　private float _dashDeceleration = 10f;
 
     private SkateBoardAction _inputActions;
     private Rigidbody _rb;
-
     private Vector2 _slideInput;
     private bool _isSlowing;
     private bool _jumpChecked;
     private bool _dashRequested;
-    
+
     // z方向の現在速度を他スクリプトが参照できるように公開
     public float CurrentZSpeed => _rb != null ? _rb.linearVelocity.z : 0f;
 
@@ -77,14 +77,6 @@ public class PlayerController : MonoBehaviour
         SlideMovement(ref velocity);
         Jump(ref velocity);
         Dash(ref velocity);
-        
-        // ★ 減速処理を追加
-        if (_state != PlayerState.Dashing)
-        {
-            // Dash後のZ方向の余分なスピードを徐々に通常速度へ戻す
-            float targetZ = _isSlowing ? _moveForced * _slowDiameter : _moveForced;
-            velocity.z = Mathf.MoveTowards(velocity.z, targetZ, _dashDeceleration * Time.fixedDeltaTime);
-        }
 
         //最終的な反映して移動
         _rb.linearVelocity = velocity;
@@ -97,8 +89,13 @@ public class PlayerController : MonoBehaviour
     private void ForwardMovement(ref Vector3 velocity)
     {
         //フラグで管理、trueなら倍率を掛けて、falseなら通常移動
-        float moveSpeed = _isSlowing ? _moveForced * _slowDiameter : _moveForced;
-        velocity.z = moveSpeed;
+        float targetZ = _isSlowing ? _moveForced * _slowDiameter : _moveForced;
+
+        if (_state != PlayerState.Dashing)
+        {
+            // Dash後のZ方向の余分なスピードを徐々に通常速度へ戻す
+            velocity.z = Mathf.MoveTowards(velocity.z, targetZ, _dashDeceleration * Time.fixedDeltaTime);
+        }
     }
 
     /// <summary>
@@ -137,7 +134,7 @@ public class PlayerController : MonoBehaviour
         }
         else if (_state == PlayerState.Dashing)
         {
-            velocity += transform.forward * (_dasgAcceretion * Time.fixedDeltaTime);
+            velocity += transform.forward * (_dashAcceretion * Time.fixedDeltaTime);
         }
     }
 
