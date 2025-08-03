@@ -21,6 +21,7 @@ public class CurrentSpeedUI : MonoBehaviour
 
         _scaleText?.Kill();
         _scaleText = _speedText.rectTransform
-            .DOScale(targetScale, 0.2f);
+            .DOScale(targetScale, 0.2f)
+            .SetEase(Ease.InQuad);
     }
 }
