@@ -19,6 +19,7 @@ public class PlayerController : MonoBehaviour
 
     [SerializeField, Header("水平移動の力")] private float _slideforced = 5f;
     [SerializeField, Header("スロー倍率")] private float _slowDiameter = 0.5f;
+    [SerializeField, Header("速度制限")]　private float _maxSpeed = 20f;
 
     [Header("ジャンプ設定")] [SerializeField, Header("ジャンプ力")]
     private float _jumpForced = 5f;
@@ -73,28 +74,41 @@ public class PlayerController : MonoBehaviour
         //Vector3へ変換
         Vector3 velocity = _rb.linearVelocity;
 
+        //Dash(ref velocity);
         ForwardMovement(ref velocity);
         SlideMovement(ref velocity);
         Jump(ref velocity);
-        Dash(ref velocity);
 
         //最終的な反映して移動
         _rb.linearVelocity = velocity;
     }
 
     /// <summary>
-    ///         自動で前進(z方向)
+    ///         z方向への移動
+    ///         前進処理や減速処理、ダッシュの処理
     /// </summary>
     /// /// <param name="velocity"></param>
     private void ForwardMovement(ref Vector3 velocity)
     {
+        if (_dashRequested && _state != PlayerState.Dashing)
+        {
+            _state = PlayerState.Dashing;
+            StartCoroutine(DashRoutine());
+        }
+
+
         //フラグで管理、trueなら倍率を掛けて、falseなら通常移動
         float targetZ = _isSlowing ? _moveForced * _slowDiameter : _moveForced;
 
-        if (_state != PlayerState.Dashing)
+        if (_state == PlayerState.Dashing)
         {
-            // Dash後のZ方向の余分なスピードを徐々に通常速度へ戻す
-            velocity.z = Mathf.MoveTowards(velocity.z, targetZ, _dashDeceleration * Time.fixedDeltaTime);
+            velocity.z += _dashAcceretion * Time.fixedDeltaTime;
+            velocity.z = Mathf.Min(velocity.z, _maxSpeed);
+        }
+        else
+        {
+            float moveSpeed = _isSlowing ? _moveForced * _slowDiameter : _moveForced;
+            velocity.z = moveSpeed;
         }
     }
 
@@ -121,22 +135,22 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    /// <summary>
-    ///         LeftShiftで加速(向いている方向)
-    /// </summary>
-    /// <param name="velocity"></param>
-    private void Dash(ref Vector3 velocity)
-    {
-        if (_dashRequested && _state != PlayerState.Dashing)
-        {
-            _state = PlayerState.Dashing;
-            StartCoroutine(DashRoutine());
-        }
-        else if (_state == PlayerState.Dashing)
-        {
-            velocity += transform.forward * (_dashAcceretion * Time.fixedDeltaTime);
-        }
-    }
+    // /// <summary>
+    // ///         LeftShiftで加速(向いている方向)
+    // /// </summary>
+    // /// <param name="velocity"></param>
+    // private void Dash(ref Vector3 velocity)
+    // {
+    //     if (_dashRequested && _state != PlayerState.Dashing)
+    //     {
+    //         _state = PlayerState.Dashing;
+    //         StartCoroutine(DashRoutine());
+    //     }
+    //     else if (_state == PlayerState.Dashing)
+    //     {
+    //         velocity += transform.forward * (_dashAcceretion * Time.fixedDeltaTime);
+    //     }
+    // }
 
     /// <summary>
     ///         Stateを戻すためのコルーチン
