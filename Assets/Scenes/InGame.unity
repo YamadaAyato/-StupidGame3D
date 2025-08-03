@@ -1111,9 +1111,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aad96c9dc3303064c90d2f3f95ceef80, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _moveForced: 5
+  _moveForced: 3
   _slideforced: 5
   _slowDiameter: 0.5
+  _maxSpeed: 20
   _jumpForced: 10
   _groundCheckDistance: 2
   _groundLayer:
