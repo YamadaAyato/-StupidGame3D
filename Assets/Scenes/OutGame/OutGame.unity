@@ -973,8 +973,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.21609025, y: 0, z: 0, w: 0.97637343}
-  m_LocalPosition: {x: 0.18356, y: 6.07, z: -5.34644}
+  m_LocalRotation: {x: 0.163207, y: 0.014707388, z: -0.0024332476, w: 0.9864792}
+  m_LocalPosition: {x: 0.35356, y: 6.07, z: -5.34644}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2542,7 +2542,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aad96c9dc3303064c90d2f3f95ceef80, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _moveForced: 3
+  _moveForced: 5
   _slideforced: 5
   _slowDiameter: 0.5
   _maxSpeed: 20
@@ -2552,8 +2552,8 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 1
   _dashAcceretion: 20
-  _dashDuration: 1
-  _dashDeceleration: 3
+  _dashDuration: 2
+  _returnSpeed: 5
 --- !u!54 &1102366644
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -2579,7 +2579,7 @@ Rigidbody:
   m_UseGravity: 1
   m_IsKinematic: 0
   m_Interpolate: 0
-  m_Constraints: 80
+  m_Constraints: 112
   m_CollisionDetection: 0
 --- !u!136 &1102366645
 CapsuleCollider:
@@ -2850,8 +2850,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1521716298}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.21609025, y: 0, z: 0, w: 0.97637343}
-  m_LocalPosition: {x: 0.18356, y: 6.07, z: -5.34644}
+  m_LocalRotation: {x: 0.163207, y: 0.014707388, z: -0.0024332476, w: 0.9864792}
+  m_LocalPosition: {x: 0.35356, y: 6.07, z: -5.34644}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2870,12 +2870,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   TrackerSettings:
-    BindingMode: 3
-    PositionDamping: {x: 1, y: 1, z: 1}
+    BindingMode: 2
+    PositionDamping: {x: 0, y: 0, z: 0}
     AngularDampingMode: 1
-    RotationDamping: {x: 1, y: 1, z: 1}
-    QuaternionDamping: 1
-  FollowOffset: {x: -0.17, y: 1.94, z: -5.7}
+    RotationDamping: {x: 0, y: 0, z: 0}
+    QuaternionDamping: 0
+  FollowOffset: {x: 0, y: 1.94, z: -5.7}
 --- !u!1 &1557453684
 GameObject:
   m_ObjectHideFlags: 0
