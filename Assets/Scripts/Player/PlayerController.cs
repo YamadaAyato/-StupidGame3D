@@ -14,24 +14,23 @@ public class PlayerController : MonoBehaviour
     private PlayerState _state = PlayerState.Normal;
     public PlayerState CurrentState => _state; // 外部からは参照可
 
-    [Header("移動設定")] [SerializeField, Header("前進力")]
-    private float _moveForced = 5f;
-
+    [Header("移動設定")]
+    [SerializeField, Header("前進力")] private float _moveForced = 5f;
     [SerializeField, Header("水平移動の力")] private float _slideforced = 5f;
     [SerializeField, Header("スロー倍率")] private float _slowDiameter = 0.5f;
-    [SerializeField, Header("速度制限")]　private float _maxSpeed = 20f;
+    [SerializeField, Header("速度制限")] private float _maxSpeed = 20f;
 
-    [Header("ジャンプ設定")] [SerializeField, Header("ジャンプ力")]
+    [Header("ジャンプ設定")]
+    [SerializeField, Header("ジャンプ力")]
     private float _jumpForced = 5f;
 
     [SerializeField, Header("接地判定の長さ")] private float _groundCheckDistance = 2f;
     [SerializeField, Header("判断するレイヤー")] private LayerMask _groundLayer;
 
-    [Header("Dash設定")] [SerializeField, Header("加速力")]
-    private float _dashAcceretion = 20f;
-
-    [SerializeField, Header(("ダッシュ継続時間"))]　private float _dashDuration = 2f;
-    [SerializeField, Header(("ダッシュ減速率"))]　private float _dashDeceleration = 10f;
+    [Header("Dash設定")]
+    [SerializeField, Header("加速力")] private float _dashAcceretion = 20f;
+    [SerializeField, Header(("ダッシュ継続時間"))] private float _dashDuration = 2f;
+    [SerializeField] private float _returnSpeed = 5f;
 
     private SkateBoardAction _inputActions;
     private Rigidbody _rb;
@@ -66,6 +65,8 @@ public class PlayerController : MonoBehaviour
         _inputActions.PlayerControls.Dash.canceled += ctx => _dashRequested = false;
     }
 
+    //OnDestroyで-=してActionのキャンセル
+
     private void OnEnable() => _inputActions.Enable();
     private void OnDisable() => _inputActions.Disable();
 
@@ -96,10 +97,6 @@ public class PlayerController : MonoBehaviour
             StartCoroutine(DashRoutine());
         }
 
-
-        //フラグで管理、trueなら倍率を掛けて、falseなら通常移動
-        float targetZ = _isSlowing ? _moveForced * _slowDiameter : _moveForced;
-
         if (_state == PlayerState.Dashing)
         {
             velocity.z += _dashAcceretion * Time.fixedDeltaTime;
@@ -108,7 +105,7 @@ public class PlayerController : MonoBehaviour
         else
         {
             float moveSpeed = _isSlowing ? _moveForced * _slowDiameter : _moveForced;
-            velocity.z = moveSpeed;
+            velocity.z = Mathf.Lerp(velocity.z, moveSpeed, _returnSpeed * Time.fixedDeltaTime);
         }
     }
 
@@ -134,23 +131,6 @@ public class PlayerController : MonoBehaviour
             _jumpChecked = false;
         }
     }
-
-    // /// <summary>
-    // ///         LeftShiftで加速(向いている方向)
-    // /// </summary>
-    // /// <param name="velocity"></param>
-    // private void Dash(ref Vector3 velocity)
-    // {
-    //     if (_dashRequested && _state != PlayerState.Dashing)
-    //     {
-    //         _state = PlayerState.Dashing;
-    //         StartCoroutine(DashRoutine());
-    //     }
-    //     else if (_state == PlayerState.Dashing)
-    //     {
-    //         velocity += transform.forward * (_dashAcceretion * Time.fixedDeltaTime);
-    //     }
-    // }
 
     /// <summary>
     ///         Stateを戻すためのコルーチン
@@ -180,7 +160,6 @@ public class PlayerController : MonoBehaviour
     private void OnDrawGizmos()
     {
         Gizmos.color = Color.red;
-        // レイを描画
         Gizmos.DrawLine(transform.position, Vector3.down * _groundCheckDistance);
     }
 }
