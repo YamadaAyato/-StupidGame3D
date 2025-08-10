@@ -48,27 +48,7 @@ public class PlayerController : MonoBehaviour
         //inputSystemの適用
         _inputActions = new SkateBoardAction();
         _rb = GetComponent<Rigidbody>();
-
-        //水平移動
-        _inputActions.PlayerControls.MoveX.performed += ctx => _slideInput = ctx.ReadValue<Vector2>();
-        _inputActions.PlayerControls.MoveX.canceled += ctx => _slideInput = Vector2.zero;
-
-        //スピード減速
-        _inputActions.PlayerControls.SlowDown.performed += ctx => _isSlowing = true;
-        _inputActions.PlayerControls.SlowDown.canceled += ctx => _isSlowing = false;
-
-        //ジャンプ
-        _inputActions.PlayerControls.Jump.performed += ctx => _jumpChecked = true;
-
-        //ダッシュ
-        _inputActions.PlayerControls.Dash.performed += ctx => _dashRequested = true;
-        _inputActions.PlayerControls.Dash.canceled += ctx => _dashRequested = false;
     }
-
-    //OnDestroyで-=してActionのキャンセル
-
-    private void OnEnable() => _inputActions.Enable();
-    private void OnDisable() => _inputActions.Disable();
 
     private void FixedUpdate()
     {
@@ -143,6 +123,7 @@ public class PlayerController : MonoBehaviour
         _state = PlayerState.Normal;
     }
 
+    #region 接地判定
     /// <summary>
     ///         接地判定をRaycastを使ってチェック
     ///         触れているならtrueで返す
@@ -162,4 +143,80 @@ public class PlayerController : MonoBehaviour
         Gizmos.color = Color.red;
         Gizmos.DrawLine(transform.position, Vector3.down * _groundCheckDistance);
     }
+    #endregion
+
+    #region InputActionのまとめ
+    private void OnEnable()
+    {
+        BindInputAction(true);
+        _inputActions.Enable();
+    }
+    private void OnDisable()
+    {
+        BindInputAction(false);
+        _inputActions.Disable();
+    }
+
+    /// <summary>
+    ///         InputActionの登録と解除
+    /// </summary>
+    /// <param name="subscribe"></param>
+    private void BindInputAction(bool subscribe)
+    {
+        var pc = _inputActions.PlayerControls;
+
+        if (subscribe)
+        {
+            //水平移動
+            pc.MoveX.performed += OnMoveX;
+            pc.MoveX.canceled += OnMoveX;
+
+            //スピード減速
+            pc.SlowDown.performed += OnslownDown;
+            pc.SlowDown.canceled += OnslownDown;
+
+            //ジャンプ
+            pc.Jump.performed += OnJump;
+
+            //ダッシュ
+            pc.Dash.performed += OnDash;
+            pc.Dash.canceled += OnDash;
+        }
+        else
+        {
+            pc.MoveX.performed -= OnMoveX;
+            pc.MoveX.canceled -= OnMoveX;
+
+            pc.SlowDown.performed -= OnslownDown;
+            pc.SlowDown.canceled -= OnslownDown;
+
+            pc.Jump.performed -= OnJump;
+
+            pc.Dash.performed -= OnDash;
+            pc.Dash.canceled -= OnDash;
+        }
+    }
+
+    private void OnMoveX(InputAction.CallbackContext ctx)
+        => _slideInput = ctx.canceled ? Vector2.zero :ctx.ReadValue<Vector2>();
+
+    private void OnslownDown(InputAction.CallbackContext ctx)
+        => _isSlowing = !ctx.canceled;
+
+    private void OnJump(InputAction.CallbackContext ctx)
+    {
+        if (ctx.performed) _jumpChecked = true;
+    }
+
+    private void OnDash(InputAction.CallbackContext ctx)
+        => _dashRequested = !ctx.canceled;
+
+    /// <summary>
+    ///         いらんけど学び用
+    /// </summary>
+    private void OnDestroy()
+    {
+        BindInputAction(false);
+    }
+    #endregion
 }
