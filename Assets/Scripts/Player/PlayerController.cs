@@ -21,9 +21,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField, Header("速度制限")] private float _maxSpeed = 20f;
 
     [Header("ジャンプ設定")]
-    [SerializeField, Header("ジャンプ力")]
-    private float _jumpForced = 5f;
-
+    [SerializeField, Header("ジャンプ力")] private float _jumpForced = 5f;
     [SerializeField, Header("接地判定の長さ")] private float _groundCheckDistance = 2f;
     [SerializeField, Header("判断するレイヤー")] private LayerMask _groundLayer;
 
@@ -198,7 +196,7 @@ public class PlayerController : MonoBehaviour
     }
 
     private void OnMoveX(InputAction.CallbackContext ctx)
-        => _slideInput = ctx.canceled ? Vector2.zero :ctx.ReadValue<Vector2>();
+        => _slideInput = ctx.canceled ? Vector2.zero : ctx.ReadValue<Vector2>();
 
     private void OnslownDown(InputAction.CallbackContext ctx)
         => _isSlowing = !ctx.canceled;
