@@ -53,7 +53,6 @@ public class PlayerController : MonoBehaviour
         //Vector3へ変換
         Vector3 velocity = _rb.linearVelocity;
 
-        //Dash(ref velocity);
         ForwardMovement(ref velocity);
         SlideMovement(ref velocity);
         Jump(ref velocity);
