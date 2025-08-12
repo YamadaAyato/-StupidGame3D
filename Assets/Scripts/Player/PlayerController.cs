@@ -30,6 +30,11 @@ public class PlayerController : MonoBehaviour
     [SerializeField, Header(("ダッシュ継続時間"))] private float _dashDuration = 2f;
     [SerializeField] private float _returnSpeed = 5f;
 
+    [Header("壁走り設定")]
+    [SerializeField, Header("壁への判定の長さ")] private float _wallCheckDistance = 3f;
+    [SerializeField, Header("判断するレイヤー")] private LayerMask _wallLayer;
+
+
     private SkateBoardAction _inputActions;
     private Rigidbody _rb;
     private Vector2 _slideInput;
@@ -120,10 +125,9 @@ public class PlayerController : MonoBehaviour
         _state = PlayerState.Normal;
     }
 
-    #region 接地判定
+    #region 壁や地面の判定
     /// <summary>
-    ///         接地判定をRaycastを使ってチェック
-    ///         触れているならtrueで返す
+    ///         接地判定
     /// </summary>
     /// <returns></returns>
     private bool IsGrounded()
@@ -133,12 +137,37 @@ public class PlayerController : MonoBehaviour
     }
 
     /// <summary>
+    ///         壁の近さの判定
+    /// </summary>
+    /// <param name="wallNomal"></param>
+    /// <returns></returns>
+    private bool CheckWall(out Vector3 wallNomal)
+    {
+        wallNomal = Vector3.zero;
+        RaycastHit hit;
+
+        if (Physics.Raycast(this.transform.position, transform.right, out hit, _wallCheckDistance, _wallLayer))
+        {
+            wallNomal = hit.normal;
+            return true;
+        }
+
+        if (Physics.Raycast(this.transform.position, -transform.right, out hit, _wallCheckDistance, _wallLayer))
+        {
+            wallNomal = hit.normal;
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
     ///         デバッグ用Gizmos
     /// </summary>
     private void OnDrawGizmos()
     {
         Gizmos.color = Color.red;
-        Gizmos.DrawLine(transform.position, Vector3.down * _groundCheckDistance);
+        Gizmos.DrawLine(this.transform.position, Vector3.down * _groundCheckDistance);
     }
     #endregion
 
