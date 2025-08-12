@@ -33,7 +33,9 @@ public class PlayerController : MonoBehaviour
     [Header("壁走り設定")]
     [SerializeField, Header("壁への判定の長さ")] private float _wallCheckDistance = 3f;
     [SerializeField, Header("判断するレイヤー")] private LayerMask _wallLayer;
-
+    [SerializeField, Header("壁への重力")] private float _wallRunGravity = 10f;
+    [SerializeField, Header("壁の角度に回転するスピード")] private float _alignSpeed = 1f;
+    [SerializeField, Header("重力")] private float _gravityScale = 1f;
 
     private SkateBoardAction _inputActions;
     private Rigidbody _rb;
@@ -41,6 +43,8 @@ public class PlayerController : MonoBehaviour
     private bool _isSlowing;
     private bool _jumpChecked;
     private bool _dashRequested;
+    private bool _isWallRunning;
+    private Vector3 _wallNormal;
 
     // z方向の現在速度を他スクリプトが参照できるように公開
     public float CurrentZSpeed => _rb != null ? _rb.linearVelocity.z : 0f;
@@ -61,6 +65,7 @@ public class PlayerController : MonoBehaviour
         ForwardMovement(ref velocity);
         SlideMovement(ref velocity);
         Jump(ref velocity);
+        WallRun(ref velocity);
 
         //最終的な反映して移動
         _rb.linearVelocity = velocity;
@@ -114,6 +119,47 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    private void WallRun(ref Vector3 velocity)
+    {
+        if (CheckWall(out _wallNormal) && !IsGrounded())
+        {
+            _isWallRunning = true;
+
+            // 壁に沿った重力方向（落下方向の修正）
+            Vector3 wallDown = Vector3.Cross(transform.forward, _wallNormal);
+            wallDown = Vector3.Cross(_wallNormal, wallDown).normalized;
+            velocity += wallDown * _wallRunGravity * Time.fixedDeltaTime;
+
+            // 壁の法線方向を正面に向けて回転補正（傾き含む）
+            Quaternion targetRotation = Quaternion.LookRotation(-_wallNormal, -wallDown);
+            transform.rotation = Quaternion.Lerp(transform.rotation, targetRotation, _alignSpeed * Time.fixedDeltaTime);
+
+            // 壁に沿った移動方向を計算（velocityのXZだけ）
+            Vector3 horizontalVelocity = new Vector3(velocity.x, 0, velocity.z);
+
+            // 壁法線を除いたベクトル（壁に平行）
+            Vector3 wallParallel = Vector3.ProjectOnPlane(horizontalVelocity, _wallNormal).normalized;
+
+            // 壁沿いに速度ベクトルを修正（もとの速度の大きさを維持）
+            float speed = horizontalVelocity.magnitude;
+            Vector3 newHorizontalVelocity = wallParallel * speed;
+
+            velocity.x = newHorizontalVelocity.x;
+            velocity.z = newHorizontalVelocity.z;
+        }
+        else
+        {
+            _isWallRunning = false;
+
+            // 通常重力
+            velocity += Vector3.down * _gravityScale * Time.fixedDeltaTime;
+
+            // 元の姿勢に戻す回転補間
+            Quaternion usuallyRotation = Quaternion.LookRotation(transform.forward, Vector3.up);
+            transform.rotation = Quaternion.Lerp(transform.rotation, usuallyRotation, _alignSpeed * Time.fixedDeltaTime);
+        }
+    }
+
     /// <summary>
     ///         Stateを戻すためのコルーチン
     /// </summary>
@@ -139,7 +185,7 @@ public class PlayerController : MonoBehaviour
     /// <summary>
     ///         壁の近さの判定
     /// </summary>
-    /// <param name="wallNomal"></param>
+    /// <param name="wallNomal">壁の法線ベクトルを返す</param>
     /// <returns></returns>
     private bool CheckWall(out Vector3 wallNomal)
     {
