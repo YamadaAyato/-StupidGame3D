@@ -2553,7 +2553,11 @@ MonoBehaviour:
     m_Bits: 1
   _dashAcceretion: 20
   _dashDuration: 2
-  _returnSpeed: 5
+  _returnSpeed: 2
+  _wallCheckDistance: 3
+  _wallLayer:
+    serializedVersion: 2
+    m_Bits: 0
 --- !u!54 &1102366644
 Rigidbody:
   m_ObjectHideFlags: 0
