@@ -2542,16 +2542,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aad96c9dc3303064c90d2f3f95ceef80, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _moveForced: 5
-  _slideforced: 0.3
-  _slowDiameter: 0.5
+  _moveForce: 5
+  _slideForce: 0.5
+  _slowMultiplier: 0.5
   _maxSpeed: 20
-  _jumpForced: 10
+  _jumpForce: 5
   _groundCheckDistance: 2
   _groundLayer:
     serializedVersion: 2
     m_Bits: 1
-  _dashAcceretion: 20
+  _dashAcceletion: 20
   _dashDuration: 2
   _returnSpeed: 2
   _wallCheckDistance: 2
